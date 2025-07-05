@@ -32,9 +32,3 @@ class Logger:
   @classmethod
   def get_logger(cls, name: LoggerName) -> Logger:
     return getLogger(name.value)
-  
-
-  # 이름 name을 가진 로그 객체의 디버그 모드 여부를 반환합니다.
-  @classmethod
-  def is_debug(cls, name: LoggerName) -> bool:
-    return getLogger(name.value).isEnabledFor(DEBUG)
