@@ -1,0 +1,30 @@
+{
+  "instructions": "Write test code that simulate real usage and trigger TypeError at given code. Follow steps below.\n### 1. Generation\n- Use only public variables and method.\n- Access underscore-prefixed names only through public method.\n- Remove annotations, comments, and docstrings.\n- Import required modules.\n- Each test must use differnt input type.\n- Do not use try-except to catch error.\n### 2. Self-evaluation\n- Ensure tests follow step 1.\n- Ensure tests raise TypeError at given code.\n- No other error should occur.\n### 3. Guided evaluation\n- Revise tests from user feedback.\n- Ensure tests follow step 1.",
+  "temperature": 0.6,
+  "top_p": 0.7,
+  "text": {
+    "format": {
+      "name": "print_test_codes",
+      "type": "json_schema",
+      "schema": {
+        "type": "object",
+        "required": ["codes"],
+        "additionalProperties": false,
+        "properties": {
+          "codes": {
+            "type": "array",
+              "items": {
+              "type": "object",
+              "required": ["name", "code"],
+              "additionalProperties": false,
+              "properties": {
+                "name": {"type": "string", "description": "Test code name 'test_neg_#'."},
+                "code": {"type": "string", "description": "'test_neg_#' code."}
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
