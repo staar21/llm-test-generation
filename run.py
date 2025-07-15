@@ -86,8 +86,9 @@ def main():
   fw_config = read_json(fw_path) if fw_path != Path() else {}
 
   # TypeError 발생 가능 코드 줄 탐지.
-  errorlines = run_finder(src[0], fcts, iter, model, err_config)
+  errorlines = run_finder(src[0], fcts, 5, model, err_config)
   classified = _classify_by_function(errorlines)
+
   for fct, errs in classified.items():
 
     # 테스트케이스 생성.

@@ -30,7 +30,7 @@ def run(path: Path, fcts=[], iter=1, model=Default.Model.value, configs={}) -> l
   if not fcts: return errorlines
 
   # 관심 함수를 설정하면 관심 없는 함수를 제거하여 반환.
-  filtered = [line for line in errorlines if line.method not in fcts]
+  filtered = [line for line in errorlines if line.method in fcts]
   return filtered
 
 
