@@ -8,7 +8,7 @@ from typing_extensions import override
 from common.function import Function
 from tools.base import ToolBase, ToolBaseBuilder
 
-from util.filesys import write_file
+from util.filesys import make_directory, write_file
 from util.logger import Logger, LoggerName
 from util.codeinfo import CodeInfo
 from validation.framework import TestFrameworkFactory
@@ -45,6 +45,7 @@ class TestGenerator(ToolBase):
     path = Default.Test_DirPath.value/f"test_{self.name}{self.count}.py"
     functions = Function.from_json(loads(out))
     
+    make_directory(Default.Test_DirPath.value)
     write_file(path, "\n\n".join(fct.to_py() for fct in functions))
     errors = self.framework.test(path)
     self.count += 1

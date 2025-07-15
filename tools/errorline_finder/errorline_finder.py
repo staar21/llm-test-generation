@@ -56,8 +56,7 @@ class ErrorLineFinder(ToolBase):
   def _is_valid(self, out: ErrorLine) -> bool:
     if out.lineno <= 0: return False
     elif out.method not in self.info.get_functions(): return False
-    elif out.code not in self.info.get_codes(out.method): return False
-    return True
+    else: return any(out.code in code for code in self.info.get_codes(out.method))
 
 
   # 결과 리스트 out을 바탕으로 조기 종료 여부를 반환합니다.
