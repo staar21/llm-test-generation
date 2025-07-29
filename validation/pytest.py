@@ -26,7 +26,7 @@ class Pytest(TestFramework):
   def _run_framework(self, path: Path, out_path=Path("test")) -> list[Error]:
     out_base_path = out_path/"pytest.json"
     make_directory(out_path)
-    run(args=['python', '-m', 'pytest', path, "--json-report", "--tb=long", "-s", f"--json-report-file={out_base_path}"],
+    run(args=['python', '-m', 'pytest', path, "--json-report", "--tb=long", "-s", "--execution-timeout=20", f"--json-report-file={out_base_path}"],
         stdout=DEVNULL, stderr=DEVNULL)
     return Error.from_pytest(read_json(out_base_path))
 

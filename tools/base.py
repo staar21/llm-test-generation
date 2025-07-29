@@ -57,7 +57,7 @@ class ToolBase():
   def run_once(self, feedback=None, **kwargs) -> list[Any]:
     info, request = self._generate_queries(feedback, **kwargs)
     str_request = " ".join(request)
-    logger.debug(f"send message: {str_request}")
+    logger.info(f"send message: {str_request}")
 
     process = self.model.send_prompt(info + request)
     output = self.model.receive_prompt(process)

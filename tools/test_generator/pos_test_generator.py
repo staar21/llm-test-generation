@@ -11,7 +11,7 @@ from util.filesys import read_file
 class Format(Enum):
   Code = "### {}\n```python\n{}\n```"
   Init_Query = "Write {} tests not to trigger any error in '{}'."
-  Fix_Query = "Rewrite test codes not to trigger {} in '{}'."
+  Fix_Query = "Rewrite test codes not to trigger any error in '{}'."
   Errorlines = " at `{}`, line {} of '{}'"
   Error = "{} triggers `{}`."
 
@@ -60,8 +60,7 @@ class PositiveTestGenerator(TestGenerator):
           # 테스트 통과 타입이 아닌 다른 오류인 경우.
           else:
             request.append(Format.Error.value.format(stringfy_names, msg))
-      errors = ", ".join(self.pass_type)
-      request.append(Format.Fix_Query.value.format(errors, fct))
+      request.append(Format.Fix_Query.value.format(fct))
 
     # 내부 변수 사용 시 추가 요청.
     if search('(?:= |\n|\t|\.)\_[a-zA-Z0-9_]+', fct):
