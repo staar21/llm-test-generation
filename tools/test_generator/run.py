@@ -24,14 +24,14 @@ class Default(Enum):
 # 코드 경로 리스트 src, 사용자 정의 정보 딕셔녀리 res, 오류 줄 리스트 lines에 대하여
 # n개의 유효한 테스트를 찾거나 최대 iter번 수행하기 전까지 cand개씩 Positive 테스트를 만들고 유효한 테스트를 반환합니다.
 def run(src: list[Path], res: dict, lines: list[ErrorLine], iter=1, cand=3, n=3,
-        model=Default.Model.value, neg_conf={}, pos_conf={}, frame=Default.Framework.value, frame_conf={}) -> list[Function]:
+        model=Default.Model.value, neg_conf={}, pos_conf={}, frame=Default.Framework.value, frame_conf={}) -> tuple[list[Function], list[Function]]:
   neg_tests = run_neg(src, lines, res, iter, cand, n,
                       model, neg_conf, frame, frame_conf)
-  if len(neg_tests) == 0: return []
+  if len(neg_tests) == 0: return [], []
   
   pos_tests = run_pos(src, lines, res, iter, cand, 10 - len(neg_tests),
                       model, pos_conf, frame, frame_conf)
-  return neg_tests + pos_tests
+  return neg_tests, pos_tests
 
 
 def main():
@@ -92,7 +92,6 @@ def main():
   fw_path = args.framework_config
   out = args.out
 
-
   # 추가 정보, 설정 내용 상세 구성.
   res = dict(item.split(":", 1) for item in res if ":" in item)
   model_neg_config = read_json(model_neg_path) if model_neg_path != Path() else {}
@@ -101,16 +100,26 @@ def main():
 
   # 테스트케이스 생성.
   errorlines = ErrorLine.from_json(read_json(err))
-  testcases = run(src, res, errorlines, iter, gen, num,
+  neg_tests, pos_tests = run(src, res, errorlines, iter, gen, num,
                   model, model_neg_config, model_pos_config, fw, fw_config)
 
   # 테스트케이스 기록.
   tests_dirpath = out/"tests"
-  test_code_path = tests_dirpath/"test.py"
-  test_json_path = tests_dirpath/"test.json"
+  test_neg_code_path = tests_dirpath/"_neg_test.py"
+  test_pos_code_path = tests_dirpath/"_pos_test.py"
+  test_neg_json_path = tests_dirpath/"_neg_test.json"
+  test_pos_json_path = tests_dirpath/"_pos_test.json"
+
   make_directory(tests_dirpath)
-  write_file(test_code_path, "\n\n".join(test.to_py() for test in testcases))
-  write_json(test_json_path, {"codes": [test.to_dict() for test in testcases]})
+  
+  if neg_tests:
+    write_file(test_neg_code_path, "\n\n".join(test.to_py() for test in neg_tests))
+    write_json(test_neg_json_path, {"codes": [test.to_dict() for test in neg_tests]})
+
+  if pos_tests:
+    write_file(test_pos_code_path, "\n\n".join(test.to_py() for test in pos_tests))
+    write_json(test_pos_json_path, {"codes": [test.to_dict() for test in pos_tests]})
+
 
 if __name__ == "__main__":
   main()

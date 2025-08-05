@@ -92,15 +92,23 @@ def main():
   for fct, errs in classified.items():
 
     # 테스트케이스 생성.
-    tests = run_tester(src, res, errs, iter, 5, num, model, neg_config, pos_config, fw, fw_config)
+    neg_tests, pos_tests = run_tester(src, res, errs, iter, 5, num, model, neg_config, pos_config, fw, fw_config)
 
-    # 테스트케이스 병합 후 파일로 출력.
-    test_path = out/f"{fct}_test.py"
-    codes = "\n\n".join(test.to_py() for test in tests)
+    # Negative 테스트케이스 파일 출력.
+    if not neg_tests: continue
+    test_neg_path = out/f"{fct}_neg_test.py"
+    codes = "\n\n".join(test.to_py() for test in neg_tests)
 
     make_directory(out)
-    write_file(test_path, codes)
+    write_file(test_neg_path, codes)
 
+    # Positive 테스트케이스 파일 출력.
+    if not pos_tests: continue
+    test_pos_path = out/f"{fct}_pos_test.py"
+    codes = "\n\n".join(test.to_py() for test in pos_tests)
+
+    make_directory(out)
+    write_file(test_pos_path, codes)
 
 if __name__ == "__main__":
   main()
