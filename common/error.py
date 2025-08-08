@@ -73,7 +73,7 @@ class Error(Element):
             results.append(Error(type, message, path, fct, code, lineno))
         return results
       
-    except (TypeError or ValueError) as e:
+    except (TypeError or ValueError):
       logger.warning("error convertion failed: input is not dict")
       return []
 

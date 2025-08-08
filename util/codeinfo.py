@@ -38,10 +38,15 @@ class CodeInfo():
     module = import_module(path.with_suffix('').as_posix().replace(sep, '.'))
 
     for name in FunctionVisitor().get_attribute_names(path):      
-      # 찾은 속성이 함수가 아닌 property라면 넘어가기.  
       attrs = name.split(".") if "." in name else [name]
-      attr = reduce(getattr, attrs, module)
-      if not callable(attr): continue
+      try:
+        # 찾은 속성이 함수가 아닌 property라면 넘어가기.
+        attr = reduce(getattr, attrs, module)
+        if not callable(attr): continue
+      except AttributeError:
+        # 호출할 수 없는 속성이라면 넘어가기.
+        logger.warning(f"no '{name}' attribute")
+        continue
 
       codes, lineno = getsourcelines(attr)
       self.codes[name] = FunctionAttribute(CodeInfo._get_complete_codes(codes), lineno, lineno + len(codes) - 1)

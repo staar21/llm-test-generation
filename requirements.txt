@@ -3,5 +3,6 @@ loguru
 openai
 pytest
 pytest-json-report
+pytest-timeouts
 typing
 typing-extensions

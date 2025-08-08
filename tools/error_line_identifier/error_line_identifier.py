@@ -16,7 +16,7 @@ class Format(Enum):
 
 
 # 잠재적인 오류 줄 탐지기 클래스.
-class ErrorLineFinder(ToolBase):
+class ErrorLineIderntifier(ToolBase):
 
   def __init__(self, info: CodeInfo, path: Path):
     self.info = info
@@ -72,7 +72,7 @@ class ErrorLineFinder(ToolBase):
   
 
 # 잠재적인 오류 줄 탐지기 빌더 클래스.
-class ErrorLineFinderBuilder(ToolBaseBuilder):
+class ErrorLineIdentifierBuilder(ToolBaseBuilder):
   
   def __init__(self):
     super().__init__()
@@ -88,8 +88,8 @@ class ErrorLineFinderBuilder(ToolBaseBuilder):
 
 
   # 설정한 정보로 잠재적인 오류 줄 탐지기를 반환합니다.
-  def build(self) -> ErrorLineFinder:
-    finder = ErrorLineFinder(self.info, self.path)
+  def build(self) -> ErrorLineIderntifier:
+    finder = ErrorLineIderntifier(self.info, self.path)
     finder.model = self.model
     finder.iteration = self.iteration
     return finder

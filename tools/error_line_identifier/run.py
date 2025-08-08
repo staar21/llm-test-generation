@@ -5,21 +5,21 @@ from pathlib import Path
 
 from common.errorline import ErrorLine
 from models.model import ModelFactory
-from tools.errorline_finder.errorline_finder import ErrorLineFinderBuilder
+from tools.error_line_identifier.error_line_identifier import ErrorLineIdentifierBuilder
 from util.filesys import make_directory, read_json, write_json
 
 
 # 오류 탐색기 실행 초기 값 열거형 클래스.
 class Default(Enum):
   Model = "response"
-  Config_Path = Path("configs/openai/response/errorline_finder.json")
+  Config_Path = Path("configs/openai/response/error_line_identifier.json")
   Out_DirPath = Path("out")
 
 
 # 이름 model과 configs 설정으로 구성한 LLM 모델을 iter 횟수만큼 실행하여
 # 경로 path 코드의 fcts 함수에 대한 TypeError 오류 줄 리스트를 찾습니다.
 def run(path: Path, fcts=[], iter=1, model=Default.Model.value, configs={}) -> list[ErrorLine]:
-  finder = (ErrorLineFinderBuilder()
+  finder = (ErrorLineIdentifierBuilder()
             .set_path(path)
             .set_model(model, config=configs)
             .set_iteration(iter)
