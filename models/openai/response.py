@@ -10,9 +10,13 @@ from models.model import Model, ModelFactory
 from util.logger import Logger, LoggerName
 
 
-# 환경 변수로 등록한 OpenAI API 키 가져오기.
+# 환경 변수로 등록한 OpenAI API 키, 시간 제한 가져오기.
 load_dotenv()
-_client = OpenAI(api_key=getenv("OPENAI_API_KEY"), timeout=20.0)
+try:
+  _timeout = float(getenv("LLM_TIMEOUT"))
+except Exception:
+  _timeout = 60.0
+_client = OpenAI(api_key=getenv("OPENAI_API_KEY"), timeout=_timeout)
 
 # LLM 모델 로그 출력 수준 설정.
 logger = Logger.get_logger(LoggerName.Internal)
