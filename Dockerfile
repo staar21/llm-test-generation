@@ -10,7 +10,7 @@ RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py
 RUN python3.9 get-pip.py
 RUN ln -s /usr/bin/python3.9 /usr/bin/python
 
-RUN git clone https://github.com/Khamax4mr/llm-test-generation.git
+RUN git clone https://github.com/staar21/llm-test-generation.git
 WORKDIR /llm-test-generation
 
 RUN pip install -r requirements.txt
