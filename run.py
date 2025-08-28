@@ -1,13 +1,17 @@
-from argparse import ArgumentParser
+from argparse import ArgumentParser, Namespace
 from enum import Enum
 from pathlib import Path
 
-from common.function import Function
 from models.model import ModelFactory
 from tools.error_line_identifier.run import run as run_identifier, _classify_by_function
 from tools.test_generator.run import run as run_tester
 from util.filesys import read_json, write_file, write_json, make_directory
+from util.logger import Logger, LoggerName
 from validation.framework import TestFrameworkFactory
+from web_response import WebResponse
+
+# 기능 클래스 로그 출력 설정.
+logger = Logger.get_logger(LoggerName.Tool)
 
 
 # LLM을 이용한 테스트 코드 생성 초기 값 열거형 클래스.
@@ -21,19 +25,15 @@ class Default(Enum):
   Out_DirPath = Path("out")
 
 
-# PySTAAR 전용. 테스트 결과 neg, pos를 반환하는 웹서버 요청 메시지를 반환합니다.
-def get_message(fct: str, neg: list[Function], pos: list[Function]) -> dict:
-  msg = {
-    "function_name": fct,
-    "tests": {
-      "negatives": [{"code": n.to_py()} for n in neg],
-      "positives": [{"code": p.to_py()} for p in pos]
-    }
-  }
-  return msg
+# 웹 인터페이스 응답 메시지 열거형 클래스.
+class ResponseMessage(Enum):
+  Error_No_Line = "no type error lines identified"
+  Error_No_Neg = "no negative testcases"
+  Message_Complete = "negative({}), positive({}) tests generated"
 
 
-def main():
+# 입력 인자를 파싱합니다.
+def parse_arguments() -> Namespace:
   # 선택 가능한 모델, 테스트 프레임워크 리스트 구성.
   available_models = ModelFactory.get_keys()
   available_frameworks = TestFrameworkFactory.get_keys()
@@ -78,9 +78,13 @@ def main():
   parser.add_argument("-o", "--out", metavar="OUTPUT_PATH", type=Path,
                       default=Default.Out_DirPath.value,
                       help="output path")
-  args = parser.parse_args()
+  return parser.parse_args()
+
+
+def main():
 
   # 파싱한 인자 연결.
+  args = parse_arguments()
   src = args.src
   res = args.res
   fcts = args.fcts
@@ -95,6 +99,10 @@ def main():
   fw_path = args.fw_configs
   out = args.out
 
+  response_dir_path = out/"response"
+  make_directory(response_dir_path)
+  response = WebResponse()
+
   # 추가 정보, 설정 내용 상세 구성.
   res = dict(item.split(":", 1) for item in res if ":" in item)
   err_config = read_json(err_path) if err_path != Path() else {}
@@ -105,30 +113,48 @@ def main():
   # TypeError 발생 가능 코드 줄 탐지.
   errorlines = run_identifier(src[0], fcts, 5, model, err_config)
   classified = _classify_by_function(errorlines)
+  for fct in fcts:
+    classified.setdefault(fct, [])
 
   for fct, errs in classified.items():
+    if not errs:
+      response.set_success(False)
+      response.set_message(ResponseMessage.Error_No_Line.value)
+      write_json(response_dir_path/f"{fct}.json", response.to_dict())
+      logger.info(f"Failed: function {fct} - {ResponseMessage.Error_No_Line.value}")
+      continue
 
     # 테스트케이스 생성.
     neg_tests, pos_tests = run_tester(src, res, errs, iter, 5, n_num, p_num, model, neg_config, pos_config, fw, fw_config)
+    response.reset()
+    response.set_function(fct)
+    response.set_negative_tests(neg_tests)
+    response.set_positive_tests(pos_tests)
+    
+    # Negative 테스트케이스 파일 출력.
+    if not neg_tests:
+      response.set_success(False)
+      response.set_message(ResponseMessage.Error_No_Neg.value)
+      write_json(response_dir_path/f"{fct}.json", response.to_dict())
+      logger.info(f"Failed: function {fct} - {ResponseMessage.Error_No_Neg.value}")
+      continue
 
     # Negative 테스트케이스 파일 출력.
-    if neg_tests:
-      test_neg_path = out/f"{fct}_neg_test.py"
+    if neg_tests:  
       codes = "\n\n".join(test.to_py() for test in neg_tests)
-      make_directory(out)
-      write_file(test_neg_path, codes)
+      write_file(out/f"{fct}_neg_test.py", codes)
 
     # Positive 테스트케이스 파일 출력.
     if pos_tests:
-      test_pos_path = out/f"{fct}_pos_test.py"
       codes = "\n\n".join(test.to_py() for test in pos_tests)
-      make_directory(out)
-      write_file(test_pos_path, codes)
+      write_file(out/f"{fct}_pos_test.py", codes)
+    
+    msg = ResponseMessage.Message_Complete.value.format(len(neg_tests), len(pos_tests))
+    response.set_success(True)
+    response.set_message(msg)
+    write_json(response_dir_path/f"{fct}.json", response.to_dict())
+    logger.info(f"Success: function {fct} - {msg}")
 
-    response_dir_path = out/"response"
-    response_path = response_dir_path/f"{fct}.json"
-    make_directory(response_dir_path)
-    write_json(response_path, get_message(fct, neg_tests, pos_tests))
 
 if __name__ == "__main__":
   main()
